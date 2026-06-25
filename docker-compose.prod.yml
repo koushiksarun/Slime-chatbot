@@ -1,0 +1,88 @@
+version: "3.9"
+
+# ── Production Docker Compose ──────────────────────────────────────────────────
+# Deploy: docker compose -f docker-compose.prod.yml up -d
+# Uses Pinecone instead of ChromaDB (managed vector DB)
+# Uses production nginx with SSL termination
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    restart: unless-stopped
+
+  backend:
+    image: ${DOCKER_REGISTRY}/chatbot-backend:${APP_VERSION:-latest}
+    env_file:
+      - .env.production
+    volumes:
+      - upload_data:/app/uploads
+    networks:
+      - internal
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    image: ${DOCKER_REGISTRY}/chatbot-frontend:${APP_VERSION:-latest}
+    networks:
+      - internal
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./infrastructure/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro  # Mount SSL certs
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - internal
+      - external
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  upload_data:
+
+networks:
+  internal:
+    driver: bridge
+  external:
+    driver: bridge
