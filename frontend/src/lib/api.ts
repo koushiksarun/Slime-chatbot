@@ -42,7 +42,6 @@ function createClient(): AxiosInstance {
           return client(original);
         } catch {
           localStorage.clear();
-          window.location.href = "/auth/login";
         }
       }
       return Promise.reject(error);
@@ -98,12 +97,17 @@ export async function* streamChat(params: {
   document_ids?: string[];
 }): AsyncGenerator<StreamChunk> {
   const token = localStorage.getItem("access_token");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${BASE_URL}/chat/`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: JSON.stringify({ ...params, stream: true }),
   });
 

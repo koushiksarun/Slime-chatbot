@@ -3,11 +3,31 @@
 import { useState, useCallback, useRef } from "react";
 import { streamChat } from "@/lib/api";
 import type { Message, Citation, Conversation } from "@/types";
-import { nanoid } from "nanoid";
 
 // Lightweight nanoid polyfill if not installed
 function uid() {
   return Math.random().toString(36).slice(2, 11);
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function createLocalReply(input: string) {
+  return "Sorry, I can't give you answers right now. My boss has not paid for the API key yet because he does not have a job at the moment. Come back once he gets hired, gets paid, and financially unlocks my brain.";
+}
+
+async function streamLocalReply(
+  content: string,
+  onToken: (value: string) => void
+) {
+  const reply = createLocalReply(content);
+  const words = reply.split(" ");
+
+  for (const word of words) {
+    onToken(`${word} `);
+    await wait(28);
+  }
 }
 
 interface UseChatOptions {
@@ -110,8 +130,31 @@ export function useChat(options: UseChatOptions = {}) {
           )
         );
       } catch (err: any) {
-        setError(err.message ?? "Failed to send message");
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        let fallbackContent = "";
+
+        await streamLocalReply(content, (token) => {
+          fallbackContent += token;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: fallbackContent }
+                : m
+            )
+          );
+        });
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  content: fallbackContent.trim(),
+                  isStreaming: false,
+                  model_used: "SLIME local preview",
+                }
+              : m
+          )
+        );
       } finally {
         setIsLoading(false);
       }

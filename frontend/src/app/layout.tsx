@@ -6,19 +6,23 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Slime — Generative AI Chat",
-  description: "Slime is a production-grade AI chatbot with RAG, memory, and agent tools",
+  title: "SLIME AI - Generative AI Chat",
+  description: "SLIME AI is a fluid production-grade chatbot with RAG, memory, and agent tools",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-gray-950 text-gray-100 antialiased`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${inter.className} bg-gray-950 text-gray-100 antialiased`} suppressHydrationWarning>
         {children}
         <Toaster
           position="top-right"
           toastOptions={{
-            style: { background: "#1f2937", color: "#f9fafb", border: "1px solid #374151" },
+            style: {
+              background: "#07130f",
+              color: "#f9fafb",
+              border: "1px solid rgba(134, 239, 172, 0.2)",
+            },
           }}
         />
       </body>

@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { ThumbsUp, ThumbsDown, BookOpen, Bot, User, Wrench } from "lucide-react";
+import { ThumbsUp, ThumbsDown, BookOpen, Bot, User, Wrench, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import type { Message, Citation } from "@/types";
 import { feedback as feedbackApi } from "@/lib/api";
@@ -20,7 +20,7 @@ function CitationCard({ citation, index }: { citation: Citation; index: number }
   return (
     <button
       onClick={() => setExpanded((v) => !v)}
-      className="flex w-full flex-col gap-1 rounded-xl border border-white/10 bg-white/[0.045] p-3 text-left transition hover:border-brand-300/40 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-brand-400/20"
+      className="flex w-full flex-col gap-1 rounded-lg border border-white/10 bg-white/[0.052] p-3 text-left transition duration-300 hover:-translate-y-0.5 hover:border-brand-300/40 hover:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-brand-400/20"
     >
       <div className="flex items-center gap-2 text-xs font-semibold text-brand-200">
         <BookOpen className="h-3.5 w-3.5 shrink-0" />
@@ -56,10 +56,10 @@ export function MessageBubble({ message }: Props) {
       {/* Avatar */}
       <div
         className={clsx(
-          "mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-white shadow-soft",
+          "mt-1 flex h-10 w-10 shrink-0 items-center justify-center border text-white shadow-soft transition duration-300",
           isUser
-            ? "border-brand-300/25 bg-brand-500/20 text-brand-100"
-            : "border-white/10 bg-white/[0.06] text-gray-200"
+            ? "rounded-lg border-lagoon-300/25 bg-lagoon-500/15 text-lagoon-100"
+            : "slime-mark text-gray-950"
         )}
       >
         {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
@@ -69,12 +69,18 @@ export function MessageBubble({ message }: Props) {
       <div className={clsx("max-w-[min(82%,760px)] space-y-2", isUser ? "items-end" : "items-start")}>
         <div
           className={clsx(
-            "rounded-2xl border px-4 py-3 text-sm leading-relaxed shadow-soft",
+            "border px-4 py-3 text-sm leading-relaxed shadow-soft transition duration-300",
             isUser
-              ? "rounded-tr-md border-brand-300/25 bg-brand-500/20 text-brand-50"
-              : "rounded-tl-md border-white/10 bg-white/[0.055] text-gray-100"
+              ? "rounded-xl rounded-tr-md border-lagoon-300/25 bg-lagoon-500/15 text-lagoon-50"
+              : "slime-surface rounded-xl rounded-tl-md text-gray-100"
           )}
         >
+          {!isUser && (
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-brand-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              SLIME AI
+            </div>
+          )}
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
@@ -89,13 +95,13 @@ export function MessageBubble({ message }: Props) {
                         style={vscDarkPlus}
                         language={match[1]}
                         PreTag="div"
-                        className="!my-3 !rounded-xl !border !border-white/10 !bg-gray-950/70 !text-xs"
+                        className="!my-3 !rounded-lg !border !border-white/10 !bg-gray-950/75 !text-xs"
                         {...props}
                       >
                         {String(children).replace(/\n$/, "")}
                       </SyntaxHighlighter>
                     ) : (
-                      <code className="rounded-md border border-white/10 bg-gray-950/70 px-1.5 py-0.5 text-xs text-brand-100" {...props}>
+                      <code className="rounded-lg border border-white/10 bg-gray-950/70 px-1.5 py-0.5 text-xs text-brand-100" {...props}>
                         {children}
                       </code>
                     );
@@ -119,7 +125,7 @@ export function MessageBubble({ message }: Props) {
 
         {/* Tool calls */}
         {!isUser && message.tool_calls && message.tool_calls.length > 0 && (
-          <div className="space-y-1 rounded-xl border border-amber-300/20 bg-amber-500/10 p-3 text-xs">
+          <div className="space-y-1 rounded-lg border border-amber-300/20 bg-amber-500/10 p-3 text-xs">
             {message.tool_calls.map((tc, i) => (
               <div key={i} className="flex gap-2 text-amber-100">
                 <Wrench className="mt-0.5 h-3.5 w-3.5 shrink-0" />
